@@ -120,8 +120,8 @@ function sitesF(){return D.sites.filter(function(s){return cdo==='All'||s.cdo===
 function fosF(){return D.fos.filter(function(f){return cdo==='All'||f.cdos.indexOf(cdo)>=0})}
 function sum(sites){
   var o={seed:0,target:0,lf:0,lf_tgt:0,s1:0,s2:0,pr:0,heaps:0,heap_t:0,heap_lf:0,sent:0,n:sites.length,farmers:0,t1:0};
-  sites.forEach(function(s){o.seed+=s.seed;o.target+=s.target;o.lf_tgt+=s.lf_tgt;o.sent+=s.sent?1:0;
-    s.lfs.forEach(function(r){o.lf++;if(r[2])o.s1++;if(r[3])o.s2++;if(r[4])o.pr++;if(r[8]!=null||r[9]!=null){o.heaps+=(r[8]||0)+(r[9]||0);o.heap_t+=r[10]||0;o.heap_lf++}o.farmers+=r[6]||0;o.t1+=r[11]||0})});
+  sites.forEach(function(s){o.seed+=s.seed;o.target+=s.target;o.lf_tgt+=s.lf_tgt;o.heap_t+=s.heap_goal||0;o.sent+=s.sent?1:0;
+    s.lfs.forEach(function(r){o.lf++;if(r[2])o.s1++;if(r[3])o.s2++;if(r[4])o.pr++;if(r[8]!=null||r[9]!=null){o.heaps+=(r[8]||0)+(r[9]||0);o.heap_lf++}o.farmers+=r[6]||0;o.t1+=r[11]||0})});
   return o}
 function foScore(f){var xs=[];if(f.r8_due)xs.push(f.r8_sent/f.r8_due);if(f.lf){xs.push(f.s1/f.lf);xs.push(f.pr/f.lf)}
   return xs.length?xs.reduce(function(a,b){return a+b},0)/xs.length:0}
@@ -193,7 +193,7 @@ function about(){
   '<li><b>CCS average</b>: the average of all '+D.n_areas+' project areas, each counted up to 100%. <b>+12</b> means '+esc(D.area)+' is 12 points above it.</li>'+
   '<li><b>Officer %</b>: the average of three things: their nursery sites with 8.0 sent this week, their lead farmers through Session 1, and their lead farmers with a progress report.</li>'+
   '<li><b>Last round</b>: some deadlines show how the previous round finished (for example Nursery Report 7.0). It disappears once this round is complete.</li>'+
-  '<li><b>Compost heaps</b>: the heap questions were added to the LF Progress Report on 11 Nov, so only lead farmers visited since then have heap numbers. \'Not reported yet\' means no visit on the new form, not zero heaps. Goal: 1 heap for every 50 trees planned, plus 10%.</li>'+
+  '<li><b>Compost heaps</b>: the heap questions were added to the LF Progress Report on 11 Nov, so only lead farmers visited since then have heap numbers. \'Not reported yet\' means no visit on the new form, not zero heaps. Goal per nursery site: the area goal (Kasanka 14,651) split across sites by each site\'s seedling target.</li>'+
   '<li><b>Farmers trained</b>: counted only from the new question \'how many of their farmers have done Training 1\'. The older form asked for sessions held, which cannot be added up as farmers.</li>'+
   '<li><b>When it updates</b>: once a day at about 20:00 Lusaka time, from everything synced in Kobo by then. Reports sent after that show the next evening.</li><li><b>Refresh button</b>: fetches the latest daily update whenever the phone has network. Without network the last numbers stay on the phone.</li></ul></div>'}
 function gap(x,a){return Math.round((Math.min(x,1)-a)*100)}
@@ -205,7 +205,7 @@ function sitesV(){
   if(!S.length)return '<div class="empty">No sites for this CDO.</div>';
   return '<h2>'+S.length+' nursery sites</h2><div class="mute" style="margin:-4px 2px 8px">Lowest seedlings vs target first. Tap a site for its lead farmers.</div>'+S.map(function(s){
     var L=s.lfs,s1=L.filter(function(r){return r[2]}).length,s2=L.filter(function(r){return r[3]}).length,pr=L.filter(function(r){return r[4]}).length,
-      HL=L.filter(function(r){return r[8]!=null||r[9]!=null}),he=HL.reduce(function(a,r){return a+(r[8]||0)+(r[9]||0)},0),ht=HL.reduce(function(a,r){return a+(r[10]||0)},0),tr=L.reduce(function(a,r){return a+(r[7]||0)},0);
+      HL=L.filter(function(r){return r[8]!=null||r[9]!=null}),he=HL.reduce(function(a,r){return a+(r[8]||0)+(r[9]||0)},0),ht=s.heap_goal||0,tr=L.reduce(function(a,r){return a+(r[7]||0)},0);
     var h='<div class="card site" data-s="'+s.code+'"><div class="hd"><div><div class="nm">'+esc(s.name)+' <span class="mute">'+s.code+'</span></div>'+
       '<div class="mute">'+esc(s.cfmg)+' '+(s.type==='CFMG'?'CFMG nursery':'EN')+' · FO '+esc(s.fo||'not set')+'</div></div>'+
       '<div style="text-align:right"><span class="tag '+(s.sent?'ok':'warn')+'">'+(s.sent?'8.0 sent':'8.0 due')+'</span></div></div>'+
@@ -213,14 +213,14 @@ function sitesV(){
       '<div class="kv"><div><div class="n">'+L.length+'/'+s.lf_tgt+'</div><div class="l">Lead farmers</div></div>'+
       '<div><div class="n">'+s1+' · '+s2+'</div><div class="l">Session 1 · 2</div></div>'+
       '<div><div class="n">'+pr+'</div><div class="l">Progress reports</div></div>'+
-      '<div><div class="n">'+(HL.length?f0(he)+(ht?'/'+f0(ht):''):'–')+'</div><div class="l">'+(HL.length?'Heaps · '+HL.length+' LF'+(HL.length>1?'s':''):'Heaps not reported yet')+'</div></div>'+
+      '<div><div class="n">'+f0(he)+'/'+f0(ht)+'</div><div class="l">Compost heaps · '+HL.length+' of '+L.length+' LFs reported</div></div>'+
       '<div><div class="n">'+f0(tr)+'</div><div class="l">Trees planned</div></div>'+
       '<div><div class="n">'+(s.germ!=null&&s.germ!==''?p0(s.germ):'–')+'</div><div class="l">Germination</div></div></div>'+
       '<div class="mute" style="margin-top:6px">Tap to '+(L.length?'see the lead farmers':'open')+(s.r8?'. Last 8.0: '+fmtDate(s.r8):'')+'</div>'+
       '<div class="lf">'+(L.length?'<table><tr><th>Lead farmer</th><th class="c">S1</th><th class="c">S2</th><th class="r">Farmers</th><th class="r">Trees</th><th class="r">Heaps</th></tr>'+
       L.map(function(r){var hs=(r[8]||0)+(r[9]||0);return '<tr><td>'+esc(r[0])+(r[15]==='warning'?' <span class="tag warn">warning</span>':r[15]==='replace'?' <span class="tag bad">replace</span>':'')+'<div class="mute">'+esc(r[1])+(r[4]?' · '+r[4]+' report'+(r[4]>1?'s':''):' · no report yet')+'</div></td>'+
         '<td class="c">'+(r[2]?'<span class="y">✓</span>':'<span class="x">○</span>')+'</td><td class="c">'+(r[3]?'<span class="y">✓</span>':'<span class="x">○</span>')+'</td>'+
-        '<td class="r">'+(r[6]==null?'–':r[6])+'</td><td class="r">'+(r[7]==null?'–':f0(r[7]))+'</td><td class="r">'+(r[8]==null&&r[9]==null?'–':hs+(r[10]?'/'+r[10]:''))+'</td></tr>'}).join('')+'</table>':'<div class="mute">No lead farmers signed to this site yet.</div>')+'</div></div>';
+        '<td class="r">'+(r[6]==null?'–':r[6])+'</td><td class="r">'+(r[7]==null?'–':f0(r[7]))+'</td><td class="r">'+(r[8]==null&&r[9]==null?'–':hs)+'</td></tr>'}).join('')+'</table>':'<div class="mute">No lead farmers signed to this site yet.</div>')+'</div></div>';
     return h}).join('')}
 
 function fosV(){
@@ -231,7 +231,7 @@ function fosV(){
     return '<div class="card fo"><div class="top"><div class="rk">'+(i+1)+'</div><div style="flex:1"><div style="font-weight:800">'+esc(f.name)+'</div>'+
       '<div class="mute">'+(f.sites.length?f.sites.length+' nursery site'+(f.sites.length>1?'s':''):'No nursery site')+' · '+f.lf+' lead farmers · CDO '+esc(f.cdos.map(first).join(', '))+'</div></div>'+
       '<div style="text-align:right"><b style="font-size:18px;color:var(--forest)">'+p0(x[1])+'</b><div class="mute">done</div></div></div>'+
-      '<div class="lines">'+ln('8.0 this week',f.r8_sent,f.r8_due)+ln('LF Session 1',f.s1,f.lf)+ln('LF Session 2',f.s2,f.lf)+ln('LF progress reports',f.pr,f.lf)+(f.heap_lf?ln('Heaps ('+f.heap_lf+' LF'+(f.heap_lf>1?'s':'')+')',f.heaps,f.heap_t):'')+'</div></div>'}).join('')+
+      '<div class="lines">'+ln('8.0 this week',f.r8_sent,f.r8_due)+ln('LF Session 1',f.s1,f.lf)+ln('LF Session 2',f.s2,f.lf)+ln('LF progress reports',f.pr,f.lf)+ln('Compost heaps',f.heaps,f.heap_t)+'</div></div>'}).join('')+
     '<div class="mute">How the % is worked out: see About.</div>'}
 
 document.addEventListener('click',function(e){

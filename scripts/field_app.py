@@ -67,6 +67,10 @@ for x in meta['sites']:
     o = site_over.get(x['code'], {})
     sites[x['code']] = dict(x, min=o.get('min', x['min']), tgt=o.get('tgt', x['tgt']))
 bsite = {x['code']: x for x in board['sites']}
+for a_ in set(x['area'] for x in sites.values()):   # compost heap goal per nursery site: the area goal split by each site's seedling target
+    tot = sum(x['seedlings'] for x in sites.values() if x['area'] == a_)
+    for x in sites.values():
+        if x['area'] == a_: x['heap_goal'] = round(HEAP_AREA.get(a_, 0) * x['seedlings'] / tot) if tot else 0
 
 # ---- lead farmers, with the tracker's removals, moves and keep lists applied
 lfs = []
@@ -237,7 +241,7 @@ for code, s in sorted(sites.items()):
     L = sorted([r for r in lfs if r['site'] == code], key=lambda r: r['name'])
     SITES.append(dict(code=code, name=s['name'], cfmg=s['cfmg'], type=s['type'], cdo=s['cdo'], fo=canon.get(b.get('fo', ''), b.get('fo', '')),
         seed=b.get('seedlings', 0), target=b.get('target', s['seedlings']), germ=b.get('germ'), sent=b.get('wk') == 'Sent', r8=b.get('r8_date', ''),
-        lf_tgt=s['tgt'], lf_min=s['min'],
+        lf_tgt=s['tgt'], lf_min=s['min'], heap_goal=s['heap_goal'],
         lfs=[[r['name'], r['fo'], r['s1'], r['s2'], r['pr'], r['pr_last'], r['farmers'], r['trees'], r['hd'], r['hv'], r['ht'], r['t1'], r['t2'], r['t3'],
               r['holes'], r['dec'], 1 if r['ret'] else 0] for r in L]))
 fos = {}
@@ -250,8 +254,9 @@ for r in lfs:
     f = fos.setdefault(r['fo'], dict(name=r['fo'], sites=[], cdos=set(), r8_due=0, r8_sent=0, lf=0, s1=0, s2=0, pr=0, pr_wk=0, heaps=0, heap_t=0, heap_lf=0))
     f['cdos'].add(sites[r['site']]['cdo'] if r['site'] in sites else r['cdo']); f['lf'] += 1; f['s1'] += 1 if r['s1'] else 0; f['s2'] += 1 if r['s2'] else 0; f['pr'] += 1 if r['pr'] else 0
     f['pr_wk'] += 1 if r['pr_wk'] else 0
-    if r['hd'] is not None or r['hv'] is not None: f['heaps'] += (r['hd'] or 0) + (r['hv'] or 0); f['heap_t'] += r['ht']; f['heap_lf'] += 1
-FOS = sorted([dict(f, cdos=sorted(f['cdos'])) for f in fos.values()], key=lambda f: f['name'])
+    if r['site'] in sites: f['heap_t'] += sites[r['site']]['heap_goal'] / max(1, sum(1 for q in lfs if q['site'] == r['site']))   # their share of the site goal
+    if r['hd'] is not None or r['hv'] is not None: f['heaps'] += (r['hd'] or 0) + (r['hv'] or 0); f['heap_lf'] += 1
+FOS = sorted([dict(f, cdos=sorted(f['cdos']), heap_t=round(f['heap_t'])) for f in fos.values()], key=lambda f: f['name'])
 
 out = dict(v=1, area=A, asof=NOW.strftime('%Y-%m-%d %H:%M'), week_start=str(WSTART), cdos=sorted({s['cdo'] for s in SITES}),
            me=M[A], avg=AVG, n_areas=len(AREAS), deadlines=deadlines, ongoing=ongoing, sites=SITES, fos=FOS,
