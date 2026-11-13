@@ -94,7 +94,7 @@ P = {}
 for _, r in prog.iterrows():
     e = P.setdefault(r.lfk, {})
     for k, cols in (('hd', ['heaps_done']), ('hv', ['heaps_dev']), ('holes', ['holes_dug']), ('marked', ['n_fields_marked']),
-                    ('t1', ['n_t1_farmers', 'n_t1']), ('t2', ['n_t2_farmers', 'n_t2']), ('t3', ['n_t3_farmers', 'n_t3'])):
+                    ('t1', ['n_t1_farmers']), ('t2', ['n_t2_farmers']), ('t3', ['n_t3_farmers'])):
         v = next((num(r.get(c)) for c in cols if c in prog.columns and nz(r.get(c)) != ''), None)
         if v is not None: e[k] = v
     if nz(r.date) and pd.to_datetime(r.date).date() >= WSTART: e['wk'] = e.get('wk', 0) + 1
@@ -103,7 +103,7 @@ heap_tgt = lambda trees: math.ceil(trees * 11 / 500) if trees else 0   # same as
 for r in lfs:
     e = P.get(r['id'], {})
     r.update(hd=e.get('hd'), hv=e.get('hv'), holes=e.get('holes'), marked=e.get('marked'), pr_wk=e.get('wk', 0),
-             t1=max(r.get('t1') or 0, e.get('t1') or 0), t2=max(r.get('t2') or 0, e.get('t2') or 0), t3=max(r.get('t3') or 0, e.get('t3') or 0),
+             t1=e.get('t1'), t2=e.get('t2'), t3=e.get('t3'),   # None = not asked yet (older form version)
              ht=heap_tgt(r.get('trees')))
 
 # ---- one spelling per field officer (Osward Kaoma = Osward Koama, Memory Jack Tembo = Memory Tembo)
@@ -134,16 +134,18 @@ def metrics(area):
     st = [s for s in sites.values() if s['area'] == area]
     seed, tgt = sum(x['seedlings'] for x in S), sum(x['target'] for x in S)
     lf_tgt = sum(s['tgt'] for s in st)
+    HR = [r for r in L if r['hd'] is not None or r['hv'] is not None]   # lead farmers asked the heap questions
+    TR = [r for r in L if r['t1'] is not None]                          # lead farmers asked how many farmers did Training 1
     fr = sum(r['farmers'] or 0 for r in L)
-    heaps = sum((r['hd'] or 0) + (r['hv'] or 0) for r in L)
+    heaps = sum((r['hd'] or 0) + (r['hv'] or 0) for r in HR)
     return dict(area=area, sites=len(S), seedlings=seed, seed_target=tgt, seed_pct=pct(seed, tgt),
                 r8_wk=sum(1 for x in S if x['wk'] == 'Sent'), r8_wk_pct=pct(sum(1 for x in S if x['wk'] == 'Sent'), len(S)),
                 lf=len(L), lf_target=lf_tgt, lf_pct=pct(len(L), lf_tgt),
                 s1=sum(1 for r in L if r['s1']), s1_pct=pct(sum(1 for r in L if r['s1']), len(L)),
                 s2=sum(1 for r in L if r['s2']), s2_pct=pct(sum(1 for r in L if r['s2']), len(L)),
                 pr=sum(1 for r in L if r['pr']), pr_pct=pct(sum(1 for r in L if r['pr']), len(L)),
-                farmers=fr, t1=sum(r['t1'] for r in L), t1_pct=pct(sum(r['t1'] for r in L), fr),
-                heaps=heaps, heaps_done=sum(r['hd'] or 0 for r in L), heap_target=HEAP_AREA.get(area, 0), heap_pct=pct(heaps, HEAP_AREA.get(area, 0)))
+                farmers=fr, t1=sum(r['t1'] for r in TR), t1_pct=pct(sum(r['t1'] for r in TR), sum(r['farmers'] or 0 for r in TR)), t1_lf=len(TR),
+                heaps=heaps, heap_lf=len(HR), heaps_done=sum(r['hd'] or 0 for r in HR), heap_target=HEAP_AREA.get(area, 0), heap_pct=pct(heaps, HEAP_AREA.get(area, 0)))
 M = {a: metrics(a) for a in AREAS}
 KEYS = ['seed_pct', 'r8_wk_pct', 'lf_pct', 's1_pct', 's2_pct', 'pr_pct', 't1_pct', 'heap_pct']
 def avg(vals):   # average of the project areas' percentages (each area counts once)
@@ -157,7 +159,7 @@ def metric_now(key, area, since):
         n = sum(1 for x in S if x.get('r8_date') and x['r8_date'] >= since); return n, len(S)
     m = M[area]
     return {'seedlings': (m['seedlings'], m['seed_target']), 'lf': (m['lf'], m['lf_target']), 's1': (m['s1'], m['lf']), 's2': (m['s2'], m['lf']),
-            'pr': (m['pr'], m['lf']), 'heaps': (m['heaps'], m['heap_target']), 't1': (m['t1'], m['farmers'])}.get(key, (None, None))
+            'pr': (m['pr'], m['lf']), 'heaps': (m['heaps'], m['heap_target']), 't1': (m['t1'], sum(r['farmers'] or 0 for r in lfs if r['area'] == area and r['t1'] is not None))}.get(key, (None, None))
 AREA_SLUG = {'kasanka': 'Kasanka', 'mpulungu': 'Mpulungu', 'zambezi': 'Zambezi', 'flamponje': 'Flamponje', 'luapula': 'Luapula', 'north_western': 'North-Western'}
 CP_ROSTER = {}
 if CP:
@@ -241,13 +243,14 @@ for code, s in sorted(sites.items()):
 fos = {}
 for s in SITES:
     if s['fo']:
-        f = fos.setdefault(s['fo'], dict(name=s['fo'], sites=[], cdos=set(), r8_due=0, r8_sent=0, lf=0, s1=0, s2=0, pr=0, pr_wk=0, heaps=0, heap_t=0))
+        f = fos.setdefault(s['fo'], dict(name=s['fo'], sites=[], cdos=set(), r8_due=0, r8_sent=0, lf=0, s1=0, s2=0, pr=0, pr_wk=0, heaps=0, heap_t=0, heap_lf=0))
         f['cdos'].add(s['cdo']); f['sites'].append(s['code']); f['r8_due'] += 1; f['r8_sent'] += 1 if s['sent'] else 0
 for r in lfs:
     if r['area'] != A: continue
-    f = fos.setdefault(r['fo'], dict(name=r['fo'], sites=[], cdos=set(), r8_due=0, r8_sent=0, lf=0, s1=0, s2=0, pr=0, pr_wk=0, heaps=0, heap_t=0))
+    f = fos.setdefault(r['fo'], dict(name=r['fo'], sites=[], cdos=set(), r8_due=0, r8_sent=0, lf=0, s1=0, s2=0, pr=0, pr_wk=0, heaps=0, heap_t=0, heap_lf=0))
     f['cdos'].add(sites[r['site']]['cdo'] if r['site'] in sites else r['cdo']); f['lf'] += 1; f['s1'] += 1 if r['s1'] else 0; f['s2'] += 1 if r['s2'] else 0; f['pr'] += 1 if r['pr'] else 0
-    f['pr_wk'] += 1 if r['pr_wk'] else 0; f['heaps'] += (r['hd'] or 0) + (r['hv'] or 0); f['heap_t'] += r['ht']
+    f['pr_wk'] += 1 if r['pr_wk'] else 0
+    if r['hd'] is not None or r['hv'] is not None: f['heaps'] += (r['hd'] or 0) + (r['hv'] or 0); f['heap_t'] += r['ht']; f['heap_lf'] += 1
 FOS = sorted([dict(f, cdos=sorted(f['cdos'])) for f in fos.values()], key=lambda f: f['name'])
 
 out = dict(v=1, area=A, asof=NOW.strftime('%Y-%m-%d %H:%M'), week_start=str(WSTART), cdos=sorted({s['cdo'] for s in SITES}),
