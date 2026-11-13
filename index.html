@@ -129,7 +129,7 @@ function foScore(f){var xs=[];if(f.r8_due)xs.push(f.r8_sent/f.r8_due);if(f.lf){x
 function render(){
   if(!D){$('#main').innerHTML='<div class="msg">'+esc(msg)+'</div>';$('#upd').textContent='';return}
   $('#ttl').textContent=D.area+' Field Board';
-  $('#upd').textContent='Updates daily ~09:00 · last '+fmtDate(D.asof.slice(0,10))+', '+D.asof.slice(11,16);
+  $('#upd').textContent='Updates daily ~20:00 · last '+fmtDate(D.asof.slice(0,10))+', '+D.asof.slice(11,16);
   var cs=['All'].concat(D.cdos);
   $('#cdos').innerHTML=cs.map(function(c){return '<button class="chip'+(c===cdo?' on':'')+'" data-c="'+esc(c)+'">'+(c==='All'?'All of '+esc(D.area):esc(c))+'</button>'}).join('');
   var h=msg?'<div class="msg">'+esc(msg)+'</div>':'';
@@ -194,7 +194,7 @@ function about(){
   '<li><b>Officer %</b>: the average of three things: their nursery sites with 8.0 sent this week, their lead farmers through Session 1, and their lead farmers with a progress report.</li>'+
   '<li><b>Last round</b>: some deadlines show how the previous round finished (for example Nursery Report 7.0). It disappears once this round is complete.</li>'+
   '<li><b>Compost heap goal</b>: 1 heap for every 50 trees planned, plus 10%. The area goal comes from the LF Progress Report.</li>'+
-  '<li><b>When it updates</b>: once a day at about 09:00 Lusaka time, from everything synced in Kobo by then. Reports sent later in the day show the next morning.</li><li><b>Refresh button</b>: fetches the latest daily update whenever the phone has network. Without network the last numbers stay on the phone.</li></ul></div>'}
+  '<li><b>When it updates</b>: once a day at about 20:00 Lusaka time, from everything synced in Kobo by then. Reports sent after that show the next evening.</li><li><b>Refresh button</b>: fetches the latest daily update whenever the phone has network. Without network the last numbers stay on the phone.</li></ul></div>'}
 function gap(x,a){return Math.round((Math.min(x,1)-a)*100)}
 function gapTag(x,a){var g=gap(x,a);return g>=0?'<span class="tag ok">+'+g+' pts</span>':'<span class="tag '+(g<=-10?'bad':'warn')+'">'+g+' pts</span>'}
 function vsAvg(x,a){var g=gap(x,a);return '<b style="color:var(--forest)">'+esc(D.area)+' is '+(g>0?g+(g===1?' point':' points')+' ahead':g<0?(-g)+(g===-1?' point':' points')+' behind':'level with the average')+'.</b>'}
