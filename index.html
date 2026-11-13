@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kasanka Field Board</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--leaf:#35a500;--forest:#2c541d;--ink:#1d2618;--mute:#66705f;--line:#e2e7dc;--bg:#f5f7f2;--card:#fff;--amber:#c98a00;--red:#c0392b;--soft:#eaf5e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Franklin Gothic Book","Franklin Gothic Medium","Libre Franklin",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.35;padding-bottom:70px}
+header{background:var(--forest);color:#fff;padding:12px 14px 10px;position:sticky;top:0;z-index:5}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-size:19px;font-weight:800;letter-spacing:.2px}
+.upd{font-size:12px;opacity:.85;margin-top:2px}
+.btn{border:0;background:var(--leaf);color:#fff;font:inherit;font-weight:600;font-size:14px;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.btn:disabled{opacity:.6}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.chip{border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff;font:inherit;font-size:13px;padding:5px 10px;border-radius:999px;white-space:nowrap;cursor:pointer}
+.chip.on{background:#fff;color:var(--forest);font-weight:600;border-color:#fff}
+main{padding:12px;max-width:720px;margin:0 auto}
+h2{font-size:16px;font-weight:800;color:var(--forest);margin:16px 2px 8px;text-transform:uppercase;letter-spacing:.4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.big{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.tile .n{font-size:24px;font-weight:800;color:var(--forest)}
+.tile .l{font-size:12px;color:var(--mute)}
+.tile .s{font-size:12px;margin-top:2px}
+.bar{height:9px;background:#e7ece2;border-radius:6px;position:relative;overflow:visible;margin-top:6px}
+.bar>i{display:block;height:100%;border-radius:6px;background:var(--leaf)}
+.bar>b{position:absolute;top:-4px;width:2px;height:17px;background:var(--ink)}
+.dl .t{font-weight:700;font-size:15px}
+.dl .when{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-top:2px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;vertical-align:middle}
+.ok{background:var(--soft);color:var(--forest)}.warn{background:#fdf1d6;color:#7a5400}.bad{background:#fbe3e0;color:var(--red)}.new{background:var(--leaf);color:#fff}
+.days{font-size:26px;font-weight:800;color:var(--forest);line-height:1}
+.days.bad{color:var(--red);background:none}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mute{color:var(--mute);font-size:12px}
+.cmp{margin-top:10px}
+.cmp .m{font-weight:700;font-size:14px;display:flex;justify-content:space-between}
+.ab{display:grid;grid-template-columns:86px 1fr 42px;align-items:center;gap:6px;font-size:12px;margin-top:3px}
+.ab .bar{margin-top:0;height:8px}
+.ab.me{font-weight:700}.ab.me .bar>i{background:var(--forest)}
+.ab:not(.me) .bar>i{background:#a9cf8f}
+.site .hd{display:flex;justify-content:space-between;gap:8px;cursor:pointer}
+.site .nm{font-weight:700}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.kv div{background:var(--bg);border-radius:8px;padding:6px}
+.kv .n{font-weight:800;font-size:15px}
+.kv .l{font-size:11px;color:var(--mute)}
+.lf{margin-top:10px;display:none}
+.site.open .lf{display:block}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:11px;color:var(--mute);text-align:left;font-weight:600;padding:4px 3px;border-bottom:1px solid var(--line)}
+td{padding:5px 3px;border-bottom:1px solid #f0f2ed;vertical-align:top}
+td.c,th.c{text-align:center}td.r,th.r{text-align:right}
+.y{color:var(--leaf);font-weight:800}.x{color:#c4c9bf}
+.fo .rk{font-size:22px;font-weight:800;color:var(--leaf);width:34px}
+.fo .top{display:flex;gap:10px;align-items:center}
+.fo .lines{margin-top:8px;display:grid;gap:6px}
+.ln{display:grid;grid-template-columns:118px 1fr 62px;gap:6px;align-items:center;font-size:12.5px}
+.ln .bar{margin-top:0}
+.ln span:last-child{text-align:right;font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;z-index:5}
+nav button{flex:1;border:0;background:none;font:inherit;font-size:13px;padding:10px 4px 12px;color:var(--mute);cursor:pointer}
+nav button.on{color:var(--forest);font-weight:800;box-shadow:inset 0 3px 0 var(--leaf)}
+.msg{background:#fdf1d6;color:#5d4100;border-radius:10px;padding:10px;font-size:13px;margin-bottom:10px}
+.empty{color:var(--mute);text-align:center;padding:30px 10px}
+.src{font-size:11px;color:var(--mute);margin-top:8px;padding-top:6px;border-top:1px dashed var(--line)}
+.srcs{font-size:12.5px;color:var(--ink)}.srcs li{margin:3px 0 3px 16px}
+.dd{text-align:right;min-width:52px}.dd .days{font-size:22px}
+.og{padding:8px 0;border-bottom:1px solid #f0f2ed}.og:first-child{padding-top:0}.og:last-child{border-bottom:0;padding-bottom:0}.og .t{font-weight:700;font-size:14px}
+.cm{display:grid;grid-template-columns:1fr 46px 64px;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #f0f2ed;font-size:14px}.cm:last-child{border-bottom:0}.cm b{text-align:right}.cm .tag{justify-self:end}
+.sel{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <div><h1 id="ttl">Kasanka Field Board</h1><div class="upd" id="upd">Loading…</div></div>
+    <button class="btn" id="rf">Refresh</button>
+  </div>
+  <div class="chips" id="cdos"></div>
+</header>
+<main id="main"><div class="empty">Loading the latest numbers…</div></main>
+<nav id="nav">
+  <button data-v="home" class="on">Today</button>
+  <button data-v="sites">Sites</button>
+  <button data-v="fos">Officers</button>
+  <button data-v="about">About</button>
+</nav>
+<script>
+(function(){
+var KEY='ccs-field-kasanka', D=null, view='home', cdo='All', fosel='', msg='';
+var $=function(s){return document.querySelector(s)};
+var f0=function(n){return n==null?'–':Math.round(n).toLocaleString('en-GB')};
+var p0=function(x){return x==null?'–':Math.round(x*100)+'%'};
+var clamp=function(x){return Math.max(0,Math.min(1,x||0))};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var first=function(n){return String(n||'').split(' ')[0]};
+function bar(x,exp){return '<div class="bar"><i style="width:'+(clamp(x)*100).toFixed(1)+'%"></i>'+(exp!=null?'<b style="left:calc('+(clamp(exp)*100).toFixed(1)+'% - 1px)"></b>':'')+'</div>'}
+function fmtDate(s){if(!s)return '';var d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
+function save(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+function cached(){try{var s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}}
+try{var v=localStorage.getItem(KEY+'-cdo');if(v)cdo=v}catch(e){}
+
+function load(manual){
+  var b=$('#rf');b.disabled=true;b.textContent='Loading…';
+  var done=false,timer=setTimeout(function(){if(!done){done=true;fail('The network is slow. Showing the last saved numbers.')}},20000);
+  fetch('data.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(d){
+    if(done)return;done=true;clearTimeout(timer);D=d;save(d);msg='';b.disabled=false;b.textContent='Refresh';render();
+  }).catch(function(){if(done)return;done=true;clearTimeout(timer);fail(manual?'No network right now. Showing the last saved numbers.':'Offline. Showing the last saved numbers.')});
+}
+function fail(m){var b=$('#rf');b.disabled=false;b.textContent='Refresh';if(!D)D=cached();msg=D?m:'Could not load the numbers. Check the network and tap Refresh.';render()}
+
+// ---- derived numbers for the selected CDO
+function sitesF(){return D.sites.filter(function(s){return cdo==='All'||s.cdo===cdo})}
+function fosF(){return D.fos.filter(function(f){return cdo==='All'||f.cdos.indexOf(cdo)>=0})}
+function sum(sites){
+  var o={seed:0,target:0,lf:0,lf_tgt:0,s1:0,s2:0,pr:0,heaps:0,heap_t:0,sent:0,n:sites.length,farmers:0,t1:0};
+  sites.forEach(function(s){o.seed+=s.seed;o.target+=s.target;o.lf_tgt+=s.lf_tgt;o.sent+=s.sent?1:0;
+    s.lfs.forEach(function(r){o.lf++;if(r[2])o.s1++;if(r[3])o.s2++;if(r[4])o.pr++;o.heaps+=(r[8]||0)+(r[9]||0);o.heap_t+=r[10]||0;o.farmers+=r[6]||0;o.t1+=r[11]||0})});
+  return o}
+function foScore(f){var xs=[];if(f.r8_due)xs.push(f.r8_sent/f.r8_due);if(f.lf){xs.push(f.s1/f.lf);xs.push(f.pr/f.lf)}
+  return xs.length?xs.reduce(function(a,b){return a+b},0)/xs.length:0}
+
+function render(){
+  if(!D){$('#main').innerHTML='<div class="msg">'+esc(msg)+'</div>';$('#upd').textContent='';return}
+  $('#ttl').textContent=D.area+' Field Board';
+  $('#upd').textContent='Updates daily ~09:00 · last '+fmtDate(D.asof.slice(0,10))+', '+D.asof.slice(11,16);
+  var cs=['All'].concat(D.cdos);
+  $('#cdos').innerHTML=cs.map(function(c){return '<button class="chip'+(c===cdo?' on':'')+'" data-c="'+esc(c)+'">'+(c==='All'?'All of '+esc(D.area):esc(c))+'</button>'}).join('');
+  var h=msg?'<div class="msg">'+esc(msg)+'</div>':'';
+  if(view==='compare')view='home';h+=({home:home,sites:sitesV,fos:fosV,about:about})[view]();
+  $('#main').innerHTML=h;
+  [].forEach.call(document.querySelectorAll('nav button'),function(b){b.classList.toggle('on',b.getAttribute('data-v')===view)});
+}
+
+function fresh(r){return false;if(!r)return false;var t=new Date(D.asof.slice(0,10)+'T12:00:00'),x=new Date(r+'T12:00:00'),g=(t-x)/864e5;return g>=0&&g<=3}
+function dlCard(d){
+  var st='',cls='ok';
+  var near=d.metric==='cp'?0.82:0.9;
+  if(d.of&&d.pct!=null){if(d.pct>=d.goal){st='Done'}else if(Math.round(d.pct*100)>=near*100){st='Near complete'}else if(d.days_left<0){st='Missed';cls='bad'}else if(d.pct+0.001>=d.expected){st='On pace'}else if(d.pct>=d.expected-0.15){st='Just behind';cls='warn'}else{st='Behind';cls='bad'}}
+  var dl=d.days_left;
+  var h='<div class="card dl"><div class="row"><div><div class="t">'+esc(d.title)+(fresh(d.released)?' <span class="tag new">NEW</span>':'')+'</div>'+
+    '<div class="mute">'+fmtDate(d.due)+(d.note?' · '+esc(d.note):'')+'</div></div>'+
+    '<div class="dd"><div class="days'+(dl<=0?' bad':'')+'">'+(dl<0?'Late':dl===0?'Today':dl)+'</div>'+(dl>0?'<div class="mute">day'+(dl>1?'s':'')+' left</div>':'')+'</div></div>';
+  if(d.of&&d.pct!=null){
+    h+='<div class="row" style="margin-top:8px"><span><b>'+f0(d.n)+'</b> of '+f0(d.of)+' · '+p0(d.pct)+'</span><span class="tag '+cls+'">'+st+'</span></div>'+bar(d.pct,d.expected)+
+      '<div class="row mute" style="margin-top:4px"><span>'+(d.avg!=null?'CCS average '+p0(d.avg):'')+'</span>'+
+      (d.prev&&Math.round(d.pct*100)<near*100?'<span>'+esc(d.prev.label)+': '+f0(d.prev.n)+' of '+f0(d.prev.of)+' · '+p0(d.prev.pct)+'</span>':'')+'</div>'}
+  else if(d.pct!=null){h+='<div class="row" style="margin-top:8px"><span><b>'+p0(d.pct)+'</b> complete</span><span class="mute">CCS-wide</span></div>'+bar(d.pct)}
+  else if(d.n!=null){h+='<div style="margin-top:8px"><b>'+f0(d.n)+'</b> submitted so far</div>'}
+  return h+'</div>'}
+function ogCard(d){
+  var h='<div class="og"><div class="t">'+esc(d.title)+(fresh(d.released)?' <span class="tag new">NEW</span>':'')+'</div>';
+  if(d.of){h+='<div class="row" style="margin-top:4px"><span><b>'+f0(d.n)+'</b> of '+f0(d.of)+' · '+p0(d.pct)+'</span>'+(d.avg!=null?'<span class="mute">CCS average '+p0(d.avg)+'</span>':'')+'</div>'+bar(d.pct)}
+  else if(d.note)h+='<div class="mute" style="font-size:13px;margin-top:2px">'+esc(d.note)+'</div>';
+  return h+'</div>'}
+var MET=[['seed_pct','Seedlings'],['r8_wk_pct','Nursery 8.0 this week'],['lf_pct','Lead farmers signed'],['s1_pct','Session 1'],['s2_pct','Session 2'],['pr_pct','LF progress reports'],['t1_pct','Farmers trained (compost)'],['heap_pct','Compost heaps']];
+function home(){
+  var S=sitesF(),o=sum(S),me=D.me;
+  var who=cdo==='All'?D.area:first(cdo)+"'s sites";
+  var dls=D.deadlines.filter(function(d){return d.days_left>=-3});
+  var h='<h2>Deadlines</h2>'+(dls.length?dls.map(dlCard).join(''):'<div class="card mute">No deadlines right now.</div>');
+  if((D.ongoing||[]).length)h+='<h2>Ongoing now</h2><div class="card">'+D.ongoing.map(ogCard).join('')+'</div>';
+  var g=cdo==='All'?me.heap_target:o.heap_t;
+  h+='<h2>'+esc(who)+' at a glance</h2><div class="big">'+
+    tile(f0(o.seed),'Seedlings',o.seed/o.target,p0(o.seed/o.target)+' of '+f0(o.target))+
+    tile(f0(o.lf),'Lead farmers',o.lf/o.lf_tgt,p0(o.lf/o.lf_tgt)+' of '+f0(o.lf_tgt))+
+    tile(p0(o.lf?o.s1/o.lf:null),'Session 1',o.lf?o.s1/o.lf:0,f0(o.s1)+' lead farmers · Session 2: '+f0(o.s2))+
+    tile(f0(o.heaps),'Compost heaps',g?o.heaps/g:0,p0(g?o.heaps/g:null)+' of '+f0(g))+'</div>';
+  h+='<h2>'+esc(D.area)+' vs CCS average</h2><div class="card">';
+  MET.forEach(function(m){var k=m[0];if(me[k]==null)return;var a=D.avg[k];
+    h+='<div class="cm"><span>'+m[1]+'</span><b>'+p0(me[k])+'</b>'+(a!=null?gapTag(me[k],a):'<span></span>')+'</div>'});
+  return h+'</div>'}
+function tile(n,l,x,s){return '<div class="tile"><div class="n">'+n+'</div><div class="l">'+l+'</div>'+bar(Math.min(x||0,1))+'<div class="s mute">'+s+'</div></div>'}
+function about(){
+  var u=fmtDate(D.asof.slice(0,10))+', '+D.asof.slice(11,16)+' Lusaka time';
+  return '<h2>Where the numbers come from</h2><div class="card srcs">Every number is pulled directly from the reports field officers submit in <b>KoboToolbox</b>. Nothing is typed in by hand.<ul style="margin-top:6px">'+
+  '<li><b>Nursery Report 8.0</b>: seedlings now, 8.0 reports sent</li>'+
+  '<li><b>Nursery Reports 5.0 to 7.0</b>: germination</li>'+
+  '<li><b>LF Signing</b>: lead farmers signed, by nursery site</li>'+
+  '<li><b>LF Training Report</b>: Session 1 and Session 2</li>'+
+  '<li><b>LF Progress Report</b>: progress reports, farmers, trees, compost heaps, farmer trainings</li>'+
+  '<li><b>Secondary Drop-off Point Proposal</b>: drop-off points submitted</li>'+
+  '<li><b>Champion Plot Monthly Verification</b>: champions verified this round (one report per champion counts)</li></ul>'+
+  '<div class="mute" style="margin-top:6px">A report only counts once it is submitted and synced in Kobo. Lead farmers removed or moved by CCS HQ are left out. Last updated '+u+'.</div></div>'+
+  '<h2>How to read it</h2><div class="card srcs"><ul>'+
+  '<li><b>Pace</b>: the black line on a deadline bar is where we should be today if the work is spread evenly from the start date to the due date. On pace = at or above the line. Just behind = up to 15 points below. Behind = more than 15 below. Near complete (green) = 90% or more, or 82% or more for champion plots, since a few are always still on the way.</li>'+
+  '<li><b>CCS average</b>: the average of all '+D.n_areas+' project areas, each counted up to 100%. <b>+12</b> means '+esc(D.area)+' is 12 points above it.</li>'+
+  '<li><b>Officer %</b>: the average of three things: their nursery sites with 8.0 sent this week, their lead farmers through Session 1, and their lead farmers with a progress report.</li>'+
+  '<li><b>Last round</b>: some deadlines show how the previous round finished (for example Nursery Report 7.0). It disappears once this round is complete.</li>'+
+  '<li><b>Compost heap goal</b>: 1 heap for every 50 trees planned, plus 10%. The area goal comes from the LF Progress Report.</li>'+
+  '<li><b>When it updates</b>: once a day at about 09:00 Lusaka time, from everything synced in Kobo by then. Reports sent later in the day show the next morning.</li><li><b>Refresh button</b>: fetches the latest daily update whenever the phone has network. Without network the last numbers stay on the phone.</li></ul></div>'}
+function gap(x,a){return Math.round((Math.min(x,1)-a)*100)}
+function gapTag(x,a){var g=gap(x,a);return g>=0?'<span class="tag ok">+'+g+' pts</span>':'<span class="tag '+(g<=-10?'bad':'warn')+'">'+g+' pts</span>'}
+function vsAvg(x,a){var g=gap(x,a);return '<b style="color:var(--forest)">'+esc(D.area)+' is '+(g>0?g+(g===1?' point':' points')+' ahead':g<0?(-g)+(g===-1?' point':' points')+' behind':'level with the average')+'.</b>'}
+
+function sitesV(){
+  var S=sitesF().slice().sort(function(a,b){return a.seed/a.target-b.seed/b.target});
+  if(!S.length)return '<div class="empty">No sites for this CDO.</div>';
+  return '<h2>'+S.length+' nursery sites</h2><div class="mute" style="margin:-4px 2px 8px">Lowest seedlings vs target first. Tap a site for its lead farmers.</div>'+S.map(function(s){
+    var L=s.lfs,s1=L.filter(function(r){return r[2]}).length,s2=L.filter(function(r){return r[3]}).length,pr=L.filter(function(r){return r[4]}).length,
+      he=L.reduce(function(a,r){return a+(r[8]||0)+(r[9]||0)},0),ht=L.reduce(function(a,r){return a+(r[10]||0)},0),tr=L.reduce(function(a,r){return a+(r[7]||0)},0);
+    var h='<div class="card site" data-s="'+s.code+'"><div class="hd"><div><div class="nm">'+esc(s.name)+' <span class="mute">'+s.code+'</span></div>'+
+      '<div class="mute">'+esc(s.cfmg)+' '+(s.type==='CFMG'?'CFMG nursery':'EN')+' · FO '+esc(s.fo||'not set')+'</div></div>'+
+      '<div style="text-align:right"><span class="tag '+(s.sent?'ok':'warn')+'">'+(s.sent?'8.0 sent':'8.0 due')+'</span></div></div>'+
+      '<div class="row" style="margin-top:8px;font-size:13px"><span><b>'+f0(s.seed)+'</b> seedlings</span><span class="mute">target '+f0(s.target)+' · '+p0(s.seed/s.target)+'</span></div>'+bar(Math.min(s.seed/s.target,1))+
+      '<div class="kv"><div><div class="n">'+L.length+'/'+s.lf_tgt+'</div><div class="l">Lead farmers</div></div>'+
+      '<div><div class="n">'+s1+' · '+s2+'</div><div class="l">Session 1 · 2</div></div>'+
+      '<div><div class="n">'+pr+'</div><div class="l">Progress reports</div></div>'+
+      '<div><div class="n">'+f0(he)+'/'+f0(ht)+'</div><div class="l">Compost heaps</div></div>'+
+      '<div><div class="n">'+f0(tr)+'</div><div class="l">Trees planned</div></div>'+
+      '<div><div class="n">'+(s.germ!=null&&s.germ!==''?p0(s.germ):'–')+'</div><div class="l">Germination</div></div></div>'+
+      '<div class="mute" style="margin-top:6px">Tap to '+(L.length?'see the lead farmers':'open')+(s.r8?'. Last 8.0: '+fmtDate(s.r8):'')+'</div>'+
+      '<div class="lf">'+(L.length?'<table><tr><th>Lead farmer</th><th class="c">S1</th><th class="c">S2</th><th class="r">Farmers</th><th class="r">Trees</th><th class="r">Heaps</th></tr>'+
+      L.map(function(r){var hs=(r[8]||0)+(r[9]||0);return '<tr><td>'+esc(r[0])+(r[15]==='warning'?' <span class="tag warn">warning</span>':r[15]==='replace'?' <span class="tag bad">replace</span>':'')+'<div class="mute">'+esc(r[1])+(r[4]?' · '+r[4]+' report'+(r[4]>1?'s':''):' · no report yet')+'</div></td>'+
+        '<td class="c">'+(r[2]?'<span class="y">✓</span>':'<span class="x">○</span>')+'</td><td class="c">'+(r[3]?'<span class="y">✓</span>':'<span class="x">○</span>')+'</td>'+
+        '<td class="r">'+(r[6]==null?'–':r[6])+'</td><td class="r">'+(r[7]==null?'–':f0(r[7]))+'</td><td class="r">'+(r[8]==null&&r[9]==null?'–':hs+(r[10]?'/'+r[10]:''))+'</td></tr>'}).join('')+'</table>':'<div class="mute">No lead farmers signed to this site yet.</div>')+'</div></div>';
+    return h}).join('')}
+
+function fosV(){
+  var F=fosF().filter(function(f){return f.lf||f.r8_due}).map(function(f){return [f,foScore(f)]}).sort(function(a,b){return b[1]-a[1]});
+  if(!F.length)return '<div class="empty">No field officers for this CDO.</div>';
+  return '<h2>Field officers, best first</h2>'+F.map(function(x,i){var f=x[0];
+    var ln=function(l,n,of){return of?'<div class="ln"><span>'+l+'</span>'+bar(Math.min(n/of,1))+'<span>'+f0(n)+' / '+f0(of)+'</span></div>':''};
+    return '<div class="card fo"><div class="top"><div class="rk">'+(i+1)+'</div><div style="flex:1"><div style="font-weight:800">'+esc(f.name)+'</div>'+
+      '<div class="mute">'+(f.sites.length?f.sites.length+' nursery site'+(f.sites.length>1?'s':''):'No nursery site')+' · '+f.lf+' lead farmers · CDO '+esc(f.cdos.map(first).join(', '))+'</div></div>'+
+      '<div style="text-align:right"><b style="font-size:18px;color:var(--forest)">'+p0(x[1])+'</b><div class="mute">done</div></div></div>'+
+      '<div class="lines">'+ln('8.0 this week',f.r8_sent,f.r8_due)+ln('LF Session 1',f.s1,f.lf)+ln('LF Session 2',f.s2,f.lf)+ln('LF progress reports',f.pr,f.lf)+ln('Compost heaps',f.heaps,f.heap_t)+'</div></div>'}).join('')+
+    '<div class="mute">How the % is worked out: see About.</div>'}
+
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-c]');if(t){cdo=t.getAttribute('data-c');try{localStorage.setItem(KEY+'-cdo',cdo)}catch(x){}render();return}
+  t=e.target.closest('nav button');if(t){view=t.getAttribute('data-v');render();window.scrollTo(0,0);return}
+  t=e.target.closest('.site .hd, .site .kv, .site > .mute');if(t){t.closest('.site').classList.toggle('open');return}
+  if(e.target.closest('#rf'))load(true);
+});
+D=cached();if(D)render();
+load(false);
+})();
+</script>
+</body>
+</html>
