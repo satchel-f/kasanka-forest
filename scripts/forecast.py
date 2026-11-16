@@ -72,6 +72,9 @@ r = r.sort_values(['vdate', '_submission_time']).groupby('code').last().reset_in
 r['tot_hard'] = pd.to_numeric(r.tot_hard, errors='coerce').fillna(0)
 r['tot_seedlings'] = pd.to_numeric(r.tot_seedlings, errors='coerce').fillna(0)
 m = S.merge(r[['code', 'tot_seedlings', 'tot_hard', 'hard_date', 'vdate']], on='code', how='left')
+m['seedlings'] = [int(t) if pd.notna(t) and t > 0 else int(x) for t, x in zip(m.tot_seedlings, m.seedlings)]   # the newest count: 8.0 where a site has one
+S['seedlings'] = m['seedlings'].values
+total_stock = int(S.seedlings.sum())
 rep = m[m.tot_hard.notna()]
 share = {a: (g.tot_hard.sum() / g.tot_seedlings.sum()) if g.tot_seedlings.sum() else 0 for a, g in rep.groupby('area')}
 overall_share = rep.tot_hard.sum() / rep.tot_seedlings.sum() if rep.tot_seedlings.sum() else 0
