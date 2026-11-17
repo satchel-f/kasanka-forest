@@ -176,7 +176,29 @@ avg_trees = (tot['trees'] / tot['trees_lf']) if tot['trees_lf'] else 0
 farm = dict(areas=fr, total=tot, trees_per_lf=int(avg_trees), demand_est=int(avg_trees * tot['lf']),
             note='Trees asked for comes from LF Progress Reports (farmers each lead farmer has, and trees they want). Only lead farmers with a report count, so demand is under-counted until reports are in.')
 
-out = dict(asof=pd.Timestamp.utcnow().tz_convert('Africa/Lusaka').strftime('%Y-%m-%d %H:%M'), today=str(TODAY), hard=hard, dist=dist, farm=farm, goals_src='forecast/settings' if cfg else 'defaults')
+# ---- release readiness per lead farmer, from the latest LF Progress Report: compost heaps, farmers trained, logbook training
+def lf_ready():
+    S_ = pd.read_excel(export('CCS Lead Farmer Signing', os.path.join(WORK, 'sign.xlsx')), 0)
+    P_ = pd.read_excel(export('CCS Lead Farmer Progress Report', os.path.join(WORK, 'prog.xlsx')), 0)
+    S_['nrc'] = S_.lf_nrc.astype(str).str.replace(r'\s', '', regex=True).str.lower(); S_['id'] = 'lf_' + S_._id.astype(str)
+    alias = {}
+    for _, g in S_.sort_values('_submission_time').groupby('nrc'):
+        for i in g.id: alias[i] = g.id.iloc[-1]
+    num = lambda v: int(float(v)) if re.fullmatch(r'-?\d+(\.\d+)?', nz(v)) else None
+    F = (('hd', 'heaps_done'), ('hv', 'heaps_dev'), ('f1', 'n_t1_farmers'), ('f2', 'n_t2_farmers'), ('f3', 'n_t3_farmers'), ('fa', 'n_farmers'), ('nr', 'n_not_registered'))
+    R = {}
+    for _, r in P_.sort_values(['date', '_submission_time']).iterrows():
+        e = R.setdefault(alias.get(nz(r.get('lf')), nz(r.get('lf'))), {})
+        for k, c in F:
+            v = num(r.get(c)) if c in P_.columns else None
+            if v is not None: e[k] = v
+        for k, c in (('lb', 'lb_received'), ('lbt', 'lb_trained')):
+            if nz(r.get(c)): e[k] = nz(r.get(c))
+    return dict(asof=pd.Timestamp.utcnow().strftime('%Y-%m-%dT%H:%M'), lf={k: v for k, v in R.items() if k and v})
+try: ready = lf_ready()
+except Exception as ex: ready = dict(error=str(ex)[:200])
+
+out = dict(asof=pd.Timestamp.utcnow().tz_convert('Africa/Lusaka').strftime('%Y-%m-%d %H:%M'), today=str(TODAY), hard=hard, dist=dist, farm=farm, ready=ready, goals_src='forecast/settings' if cfg else 'defaults')
 os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
 json.dump(out, open(OUT, 'w'), separators=(',', ':'))
 print(json.dumps({'confirmed': confirmed, 'est_total': est_total, 'stock': total_stock, 'pace': pace, 'goals': [(g['label'], g['status'], g['proj_date']) for g in goals],
